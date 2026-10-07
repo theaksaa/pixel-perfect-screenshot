@@ -1,8 +1,6 @@
 import { Fragment, type ReactNode } from "react";
-import { GitBranch, Sparkles as _unused } from "lucide-react";
+import { GitBranch } from "lucide-react";
 import { docFor, entities } from "@/lib/atlas-data";
-
-void _unused;
 
 function Rich({ text, onOpen }: { text: string; onOpen: (id: string) => void }) {
   const parts: ReactNode[] = [];
