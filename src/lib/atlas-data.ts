@@ -16,7 +16,7 @@ export interface Entity {
   type: EntityType;
   domain?: string;
   stack?: string;
-  stats?: string;
+  stats?: string | undefined;
   repo?: string;
 }
 
@@ -26,9 +26,9 @@ export interface GraphNode {
   type: EntityType;
   x: number;
   y: number;
-  sub?: string;
-  stats?: string;
-  ref?: string; // entity id to drill into
+  sub?: string | undefined;
+  stats?: string | undefined;
+  ref?: string | undefined; // entity id to drill into
   mono?: boolean;
 }
 

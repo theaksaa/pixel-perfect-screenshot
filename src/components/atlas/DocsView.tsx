@@ -17,7 +17,7 @@ function Rich({ text, onOpen }: { text: string; onOpen: (id: string) => void }) 
   return <>{parts.map((p, i) => <Fragment key={i}>{p}</Fragment>)}</>;
 }
 
-function EntityLink({ id, label, onOpen }: { id: string; label?: string; onOpen: (id: string) => void }) {
+function EntityLink({ id, label, onOpen }: { id: string; label?: string | undefined; onOpen: (id: string) => void }) {
   return (
     <button
       onClick={() => onOpen(id)}
