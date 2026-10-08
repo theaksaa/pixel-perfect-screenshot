@@ -90,8 +90,8 @@ const platformGraph: Graph = {
     n("ordersdb", 660, 380),
     n("inventory", 880, 380),
     n("stripe", 200, 550),
-    n("notification", 380, 550),
-    n("analytics", 600, 550),
+    n("notification", 420, 550),
+    n("analytics", 660, 550),
   ],
   edges: [
     { from: "gateway", to: "order", kind: "rest", label: "REST" },
