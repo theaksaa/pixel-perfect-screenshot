@@ -9,7 +9,7 @@ function Rich({ text, onOpen }: { text: string; onOpen: (id: string) => void }) 
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {
     parts.push(text.slice(last, m.index));
-    const id = m[1];
+    const id = m[1]!;
     parts.push(<EntityLink key={m.index} id={id} label={m[2]} onOpen={onOpen} />);
     last = m.index + m[0].length;
   }
@@ -17,7 +17,7 @@ function Rich({ text, onOpen }: { text: string; onOpen: (id: string) => void }) 
   return <>{parts.map((p, i) => <Fragment key={i}>{p}</Fragment>)}</>;
 }
 
-function EntityLink({ id, label, onOpen }: { id: string; label?: string; onOpen: (id: string) => void }) {
+function EntityLink({ id, label, onOpen }: { id: string; label?: string | undefined; onOpen: (id: string) => void }) {
   return (
     <button
       onClick={() => onOpen(id)}
@@ -37,7 +37,7 @@ const Code = ({ children }: { children: ReactNode }) => (
 );
 
 export function DocsView({ contextId, onOpen }: { contextId: string; onOpen: (id: string) => void }) {
-  const e = entities[contextId];
+  const e = entities[contextId]!;
   const d = docFor(contextId);
   return (
     <div className="scrollbar-thin h-full overflow-auto bg-surface">

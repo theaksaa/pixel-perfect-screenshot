@@ -16,7 +16,7 @@ export interface Entity {
   type: EntityType;
   domain?: string;
   stack?: string;
-  stats?: string;
+  stats?: string | undefined;
   repo?: string;
 }
 
@@ -26,9 +26,9 @@ export interface GraphNode {
   type: EntityType;
   x: number;
   y: number;
-  sub?: string;
-  stats?: string;
-  ref?: string; // entity id to drill into
+  sub?: string | undefined;
+  stats?: string | undefined;
+  ref?: string | undefined; // entity id to drill into
   mono?: boolean;
 }
 
@@ -46,7 +46,7 @@ export interface Graph {
 
 export const PLATFORM_ID = "platform";
 
-export const entities: Record<string, Entity> = {
+export const entities: { [k: string]: Entity } = {
   platform: { id: "platform", name: "Acme Platform", type: "platform" },
   gateway: { id: "gateway", name: "API Gateway", type: "gateway", domain: "Edge", stack: "Envoy · Lua", stats: "38 routes", repo: "acme/edge-gateway" },
   order: { id: "order", name: "Order Service", type: "service", domain: "Commerce", stack: "Java · Spring Boot", stats: "12 APIs · 4 Events", repo: "acme/order-service" },
@@ -90,8 +90,8 @@ const platformGraph: Graph = {
     n("ordersdb", 660, 380),
     n("inventory", 880, 380),
     n("stripe", 200, 550),
-    n("notification", 380, 550),
-    n("analytics", 600, 550),
+    n("notification", 420, 550),
+    n("analytics", 660, 550),
   ],
   edges: [
     { from: "gateway", to: "order", kind: "rest", label: "REST" },
@@ -252,7 +252,7 @@ export const docs: Record<string, Doc> = {
 
 export function docFor(id: string): Doc {
   if (docs[id]) return docs[id];
-  const e = entities[id];
+  const e = entities[id]!;
   const up = platformGraph.edges.filter((x) => x.to === id);
   const down = platformGraph.edges.filter((x) => x.from === id);
   return {
@@ -265,7 +265,7 @@ export function docFor(id: string): Doc {
 export function pathFor(id: string): { label: string; id?: string }[] {
   const root = { label: "Acme Platform", id: PLATFORM_ID };
   if (id === PLATFORM_ID) return [root];
-  const e = entities[id];
+  const e = entities[id]!;
   return [root, { label: e.domain ?? "" , id: PLATFORM_ID }, { label: e.name, id }];
 }
 
@@ -281,7 +281,7 @@ export const defaultSuggestions = [
 ];
 
 export function fakeAnswer(q: string, ctx: string): { text: string; highlight: string[] } {
-  const name = entities[ctx].name;
+  const name = entities[ctx]!.name;
   const ql = q.toLowerCase();
   if (ql.includes("order") && (ql.includes("creat") || ql.includes("checkout")))
     return {
