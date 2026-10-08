@@ -30,7 +30,7 @@ export function Assistant({ contextId, onShowOnGraph }: Props) {
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
-  const ctxName = entities[contextId].name;
+  const ctxName = entities[contextId]!.name;
 
   useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, thinking]);
 
@@ -87,7 +87,7 @@ export function Assistant({ contextId, onShowOnGraph }: Props) {
           ) : (
             <div key={i} className="space-y-2 text-[12.5px] leading-[1.6] text-secondary-foreground">
               <div className="flex items-center gap-1.5 text-[11px] text-faint">
-                <Waypoints className="size-3 text-primary" /> Atlas · {entities[m.ctx].name}
+                <Waypoints className="size-3 text-primary" /> Atlas · {entities[m.ctx]!.name}
               </div>
               {m.text.split("\n\n").map((p, j) => <p key={j}>{inline(p)}</p>)}
               {m.highlight && (
