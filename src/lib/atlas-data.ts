@@ -46,7 +46,7 @@ export interface Graph {
 
 export const PLATFORM_ID = "platform";
 
-export const entities: Record<string, Entity> = {
+export const entities: { [k: string]: Entity } = {
   platform: { id: "platform", name: "Acme Platform", type: "platform" },
   gateway: { id: "gateway", name: "API Gateway", type: "gateway", domain: "Edge", stack: "Envoy · Lua", stats: "38 routes", repo: "acme/edge-gateway" },
   order: { id: "order", name: "Order Service", type: "service", domain: "Commerce", stack: "Java · Spring Boot", stats: "12 APIs · 4 Events", repo: "acme/order-service" },
@@ -252,7 +252,7 @@ export const docs: Record<string, Doc> = {
 
 export function docFor(id: string): Doc {
   if (docs[id]) return docs[id];
-  const e = entities[id];
+  const e = entities[id]!;
   const up = platformGraph.edges.filter((x) => x.to === id);
   const down = platformGraph.edges.filter((x) => x.from === id);
   return {
@@ -265,7 +265,7 @@ export function docFor(id: string): Doc {
 export function pathFor(id: string): { label: string; id?: string }[] {
   const root = { label: "Acme Platform", id: PLATFORM_ID };
   if (id === PLATFORM_ID) return [root];
-  const e = entities[id];
+  const e = entities[id]!;
   return [root, { label: e.domain ?? "" , id: PLATFORM_ID }, { label: e.name, id }];
 }
 
@@ -281,7 +281,7 @@ export const defaultSuggestions = [
 ];
 
 export function fakeAnswer(q: string, ctx: string): { text: string; highlight: string[] } {
-  const name = entities[ctx].name;
+  const name = entities[ctx]!.name;
   const ql = q.toLowerCase();
   if (ql.includes("order") && (ql.includes("creat") || ql.includes("checkout")))
     return {

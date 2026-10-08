@@ -44,7 +44,7 @@ function Atlas() {
   };
 
   const crumbs = pathFor(ctx);
-  const e = entities[ctx];
+  const e = entities[ctx]!;
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
