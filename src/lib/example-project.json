@@ -1,0 +1,770 @@
+{
+  "project": {
+    "id": "platform",
+    "name": "Acme Platform",
+    "description": "Distributed commerce platform",
+    "repo": "acme/commerce"
+  },
+  "nodes": [
+    {
+      "id": "gateway",
+      "name": "API Gateway",
+      "type": "gateway",
+      "domain": "Edge",
+      "stack": "Envoy · Lua",
+      "repo": "acme/edge-gateway",
+      "parent": "platform",
+      "position": {
+        "x": 660,
+        "y": 60
+      }
+    },
+    {
+      "id": "order",
+      "name": "Order Service",
+      "type": "service",
+      "domain": "Commerce",
+      "stack": "Java · Spring Boot",
+      "repo": "acme/order-service",
+      "parent": "platform",
+      "position": {
+        "x": 440,
+        "y": 210
+      }
+    },
+    {
+      "id": "catalog",
+      "name": "Catalog Service",
+      "type": "service",
+      "domain": "Commerce",
+      "stack": "Go · Fiber",
+      "repo": "acme/catalog",
+      "parent": "platform",
+      "position": {
+        "x": 880,
+        "y": 210
+      }
+    },
+    {
+      "id": "payment",
+      "name": "Payment Service",
+      "type": "service",
+      "domain": "Payments",
+      "stack": "Kotlin · Ktor",
+      "repo": "acme/payments",
+      "parent": "platform",
+      "position": {
+        "x": 200,
+        "y": 380
+      }
+    },
+    {
+      "id": "inventory",
+      "name": "Inventory Service",
+      "type": "service",
+      "domain": "Commerce",
+      "stack": "Go · gRPC",
+      "repo": "acme/inventory",
+      "parent": "platform",
+      "position": {
+        "x": 880,
+        "y": 380
+      }
+    },
+    {
+      "id": "eventbus",
+      "name": "Kafka",
+      "type": "topic",
+      "domain": "Infrastructure",
+      "stack": "Confluent · 3 brokers",
+      "repo": "acme/kafka-config",
+      "parent": "platform",
+      "position": {
+        "x": 440,
+        "y": 380
+      }
+    },
+    {
+      "id": "ordersdb",
+      "name": "Orders DB",
+      "type": "database",
+      "domain": "Commerce",
+      "stack": "PostgreSQL 15",
+      "repo": "acme/order-service",
+      "parent": "platform",
+      "position": {
+        "x": 660,
+        "y": 380
+      }
+    },
+    {
+      "id": "notification",
+      "name": "Notification Service",
+      "type": "service",
+      "domain": "Engagement",
+      "stack": "Node · NestJS",
+      "repo": "acme/notifications",
+      "parent": "platform",
+      "position": {
+        "x": 420,
+        "y": 550
+      }
+    },
+    {
+      "id": "analytics",
+      "name": "Analytics Service",
+      "type": "service",
+      "domain": "Data",
+      "stack": "Python · Flink",
+      "repo": "acme/analytics-pipeline",
+      "parent": "platform",
+      "position": {
+        "x": 660,
+        "y": 550
+      }
+    },
+    {
+      "id": "stripe",
+      "name": "Stripe",
+      "type": "external",
+      "domain": "External",
+      "stack": "Third-party API",
+      "parent": "platform",
+      "position": {
+        "x": 200,
+        "y": 550
+      }
+    },
+    {
+      "id": "order-api",
+      "type": "endpoint",
+      "name": "POST /orders",
+      "parent": "order"
+    },
+    {
+      "id": "order-controller",
+      "type": "class",
+      "name": "OrderController",
+      "parent": "order",
+      "file": "order/src/OrderController.java"
+    },
+    {
+      "id": "create-order",
+      "type": "method",
+      "name": "createOrder",
+      "parent": "order-controller"
+    },
+    {
+      "id": "order-usecase",
+      "type": "interface",
+      "name": "OrderUseCase",
+      "parent": "order",
+      "file": "order/src/OrderUseCase.java"
+    },
+    {
+      "id": "order-service-class",
+      "type": "class",
+      "name": "OrderService",
+      "parent": "order",
+      "file": "order/src/OrderService.java"
+    },
+    {
+      "id": "process-order",
+      "type": "method",
+      "name": "processOrder",
+      "parent": "order-service-class"
+    },
+    {
+      "id": "validate-order",
+      "type": "method",
+      "name": "validateOrder",
+      "parent": "order-service-class"
+    },
+    {
+      "id": "calculate-total",
+      "type": "method",
+      "name": "calculateTotal",
+      "parent": "order-service-class"
+    },
+    {
+      "id": "find-order",
+      "type": "method",
+      "name": "findOrder",
+      "parent": "order-service-class"
+    },
+    {
+      "id": "cancel-order",
+      "type": "method",
+      "name": "cancelOrder",
+      "parent": "order-service-class"
+    },
+    {
+      "id": "payment-client",
+      "type": "client",
+      "name": "PaymentClient",
+      "parent": "order",
+      "file": "order/src/PaymentClient.java"
+    },
+    {
+      "id": "authorize-payment",
+      "type": "method",
+      "name": "authorizePayment",
+      "parent": "payment-client"
+    },
+    {
+      "id": "order-repository",
+      "type": "repository",
+      "name": "OrderRepository",
+      "parent": "order",
+      "file": "order/src/OrderRepository.java"
+    },
+    {
+      "id": "save-order",
+      "type": "method",
+      "name": "save",
+      "parent": "order-repository"
+    },
+    {
+      "id": "read-order",
+      "type": "method",
+      "name": "findById",
+      "parent": "order-repository"
+    },
+    {
+      "id": "order-publisher",
+      "type": "producer",
+      "name": "OrderEventPublisher",
+      "parent": "order",
+      "file": "order/src/OrderEventPublisher.java"
+    },
+    {
+      "id": "publish-order",
+      "type": "method",
+      "name": "publishOrderCompleted",
+      "parent": "order-publisher"
+    },
+    {
+      "id": "order-completed",
+      "type": "kafka-topic",
+      "name": "order.completed",
+      "parent": "eventbus"
+    },
+    {
+      "id": "order-cancelled",
+      "type": "kafka-topic",
+      "name": "order.cancelled",
+      "parent": "eventbus"
+    },
+    {
+      "id": "payment-completed",
+      "type": "kafka-topic",
+      "name": "payment.completed",
+      "parent": "eventbus"
+    },
+    {
+      "id": "payment-api",
+      "type": "endpoint",
+      "name": "POST /payments/authorize",
+      "parent": "payment"
+    },
+    {
+      "id": "payment-controller",
+      "type": "class",
+      "name": "PaymentController",
+      "parent": "payment",
+      "file": "payment/src/PaymentController.java"
+    },
+    {
+      "id": "payment-authorize",
+      "type": "method",
+      "name": "authorize",
+      "parent": "payment-controller"
+    },
+    {
+      "id": "authorization-service",
+      "type": "class",
+      "name": "AuthorizationService",
+      "parent": "payment",
+      "file": "payment/src/AuthorizationService.java"
+    },
+    {
+      "id": "process-payment",
+      "type": "method",
+      "name": "authorize",
+      "parent": "authorization-service"
+    },
+    {
+      "id": "risk-check",
+      "type": "method",
+      "name": "assessRisk",
+      "parent": "authorization-service"
+    },
+    {
+      "id": "stripe-gateway",
+      "type": "client",
+      "name": "StripeGateway",
+      "parent": "payment",
+      "file": "payment/src/StripeGateway.java"
+    },
+    {
+      "id": "stripe-intent",
+      "type": "method",
+      "name": "createPaymentIntent",
+      "parent": "stripe-gateway"
+    },
+    {
+      "id": "payment-gateway",
+      "type": "interface",
+      "name": "PaymentGateway",
+      "parent": "payment",
+      "file": "payment/src/PaymentGateway.java"
+    },
+    {
+      "id": "payment-repository",
+      "type": "repository",
+      "name": "PaymentRepository",
+      "parent": "payment",
+      "file": "payment/src/PaymentRepository.java"
+    },
+    {
+      "id": "save-payment",
+      "type": "method",
+      "name": "save",
+      "parent": "payment-repository"
+    },
+    {
+      "id": "paymentsdb",
+      "type": "database",
+      "name": "Payments DB",
+      "parent": "payment"
+    },
+    {
+      "id": "payment-publisher",
+      "type": "producer",
+      "name": "PaymentEventPublisher",
+      "parent": "payment",
+      "file": "payment/src/PaymentEventPublisher.java"
+    },
+    {
+      "id": "publish-payment",
+      "type": "method",
+      "name": "publishPaymentCompleted",
+      "parent": "payment-publisher"
+    },
+    {
+      "id": "payment-listener",
+      "type": "consumer",
+      "name": "PaymentCompletedListener",
+      "parent": "order",
+      "file": "order/src/PaymentCompletedListener.java"
+    },
+    {
+      "id": "on-payment",
+      "type": "method",
+      "name": "onPaymentCompleted",
+      "parent": "payment-listener"
+    },
+    {
+      "id": "order-consumer",
+      "type": "consumer",
+      "name": "OrderCompletedConsumer",
+      "parent": "notification",
+      "file": "notification/src/OrderCompletedConsumer.java"
+    },
+    {
+      "id": "on-order",
+      "type": "method",
+      "name": "onOrderCompleted",
+      "parent": "order-consumer"
+    },
+    {
+      "id": "email-sender",
+      "type": "class",
+      "name": "EmailSender",
+      "parent": "notification",
+      "file": "notification/src/EmailSender.java"
+    },
+    {
+      "id": "send-email",
+      "type": "method",
+      "name": "sendConfirmation",
+      "parent": "email-sender"
+    },
+    {
+      "id": "sendgrid",
+      "type": "external",
+      "name": "SendGrid",
+      "parent": "notification"
+    },
+    {
+      "id": "metrics-job",
+      "type": "consumer",
+      "name": "OrderEventsJob",
+      "parent": "analytics",
+      "file": "analytics/src/OrderEventsJob.java"
+    },
+    {
+      "id": "record-order",
+      "type": "method",
+      "name": "recordOrder",
+      "parent": "metrics-job"
+    },
+    {
+      "id": "warehouse",
+      "type": "database",
+      "name": "Analytics Warehouse",
+      "parent": "analytics"
+    },
+    {
+      "id": "catalog-api",
+      "type": "endpoint",
+      "name": "GET /products/{id}",
+      "parent": "catalog"
+    },
+    {
+      "id": "product-controller",
+      "type": "class",
+      "name": "ProductController",
+      "parent": "catalog",
+      "file": "catalog/src/ProductController.java"
+    },
+    {
+      "id": "get-product",
+      "type": "method",
+      "name": "getProduct",
+      "parent": "product-controller"
+    },
+    {
+      "id": "product-repository",
+      "type": "repository",
+      "name": "ProductRepository",
+      "parent": "catalog",
+      "file": "catalog/src/ProductRepository.java"
+    },
+    {
+      "id": "find-product",
+      "type": "method",
+      "name": "findById",
+      "parent": "product-repository"
+    },
+    {
+      "id": "catalogdb",
+      "type": "database",
+      "name": "Catalog DB",
+      "parent": "catalog"
+    },
+    {
+      "id": "stock-rpc",
+      "type": "endpoint",
+      "name": "StockService/GetStock",
+      "parent": "inventory"
+    },
+    {
+      "id": "commerce-repo",
+      "type": "project",
+      "name": "Commerce Repository",
+      "parent": "platform"
+    },
+    {
+      "id": "order-module",
+      "type": "module",
+      "name": "order/application",
+      "parent": "commerce-repo"
+    }
+  ],
+  "relationships": [
+    {
+      "source": "gateway",
+      "target": "order",
+      "type": "REST",
+      "label": "REST",
+      "view": "architecture"
+    },
+    {
+      "source": "gateway",
+      "target": "catalog",
+      "type": "REST",
+      "label": "REST",
+      "view": "architecture"
+    },
+    {
+      "source": "order",
+      "target": "payment",
+      "type": "REST",
+      "label": "REST",
+      "view": "architecture"
+    },
+    {
+      "source": "order",
+      "target": "eventbus",
+      "type": "KAFKA",
+      "label": "Kafka",
+      "view": "architecture"
+    },
+    {
+      "source": "order",
+      "target": "ordersdb",
+      "type": "SQL",
+      "label": "SQL",
+      "view": "architecture"
+    },
+    {
+      "source": "catalog",
+      "target": "inventory",
+      "type": "GRPC",
+      "label": "gRPC",
+      "view": "architecture"
+    },
+    {
+      "source": "payment",
+      "target": "stripe",
+      "type": "REST",
+      "label": "HTTPS",
+      "view": "architecture"
+    },
+    {
+      "source": "eventbus",
+      "target": "notification",
+      "type": "KAFKA",
+      "label": "Kafka",
+      "view": "architecture"
+    },
+    {
+      "source": "eventbus",
+      "target": "analytics",
+      "type": "KAFKA",
+      "label": "Kafka",
+      "view": "architecture"
+    },
+    {
+      "source": "order-api",
+      "target": "create-order",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "create-order",
+      "target": "process-order",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "process-order",
+      "target": "validate-order",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "process-order",
+      "target": "calculate-total",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "process-order",
+      "target": "authorize-payment",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "process-order",
+      "target": "save-order",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "process-order",
+      "target": "publish-order",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "order-service-class",
+      "target": "order-usecase",
+      "type": "IMPLEMENTS",
+      "view": "code"
+    },
+    {
+      "source": "order-controller",
+      "target": "order-usecase",
+      "type": "USES",
+      "view": "code"
+    },
+    {
+      "source": "save-order",
+      "target": "ordersdb",
+      "type": "WRITES",
+      "view": "code"
+    },
+    {
+      "source": "read-order",
+      "target": "ordersdb",
+      "type": "READS",
+      "view": "code"
+    },
+    {
+      "source": "find-order",
+      "target": "read-order",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "cancel-order",
+      "target": "save-order",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "cancel-order",
+      "target": "order-cancelled",
+      "type": "PRODUCES",
+      "view": "code"
+    },
+    {
+      "source": "publish-order",
+      "target": "order-completed",
+      "type": "PRODUCES",
+      "view": "code"
+    },
+    {
+      "source": "authorize-payment",
+      "target": "payment-api",
+      "type": "HTTP_CALL",
+      "view": "code"
+    },
+    {
+      "source": "payment-api",
+      "target": "payment-authorize",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "payment-authorize",
+      "target": "process-payment",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "process-payment",
+      "target": "risk-check",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "process-payment",
+      "target": "stripe-intent",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "process-payment",
+      "target": "save-payment",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "process-payment",
+      "target": "publish-payment",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "stripe-gateway",
+      "target": "payment-gateway",
+      "type": "IMPLEMENTS",
+      "view": "code"
+    },
+    {
+      "source": "stripe-intent",
+      "target": "stripe",
+      "type": "HTTP_CALL",
+      "view": "code"
+    },
+    {
+      "source": "save-payment",
+      "target": "paymentsdb",
+      "type": "WRITES",
+      "view": "code"
+    },
+    {
+      "source": "publish-payment",
+      "target": "payment-completed",
+      "type": "PRODUCES",
+      "view": "code"
+    },
+    {
+      "source": "on-payment",
+      "target": "payment-completed",
+      "type": "CONSUMES",
+      "view": "code"
+    },
+    {
+      "source": "on-payment",
+      "target": "save-order",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "on-order",
+      "target": "order-completed",
+      "type": "CONSUMES",
+      "view": "code"
+    },
+    {
+      "source": "on-order",
+      "target": "send-email",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "send-email",
+      "target": "sendgrid",
+      "type": "HTTP_CALL",
+      "view": "code"
+    },
+    {
+      "source": "record-order",
+      "target": "order-completed",
+      "type": "CONSUMES",
+      "view": "code"
+    },
+    {
+      "source": "record-order",
+      "target": "warehouse",
+      "type": "WRITES",
+      "view": "code"
+    },
+    {
+      "source": "catalog-api",
+      "target": "get-product",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "get-product",
+      "target": "find-product",
+      "type": "CALLS",
+      "view": "code"
+    },
+    {
+      "source": "find-product",
+      "target": "catalogdb",
+      "type": "READS",
+      "view": "code"
+    },
+    {
+      "source": "get-product",
+      "target": "stock-rpc",
+      "type": "GRPC_CALL",
+      "view": "code"
+    }
+  ],
+  "documentation": {
+    "platform": "# Acme Platform\n\nAcme Platform is an event-driven commerce system of 6 services. Traffic enters through the [[gateway]], which routes to [[order]] and [[catalog]]. Asynchronous work fans out over [[eventbus|Kafka]].\n\n## Responsibilities\n- Product discovery and catalog management\n- Order placement and lifecycle\n- Payment authorization and capture\n- Customer notifications and analytics\n\n## Checkout\n```\nGateway → Order Service → Payment Service → Orders DB → order.completed\n```\n\n## Product browse\n```\nGateway → Catalog Service → Inventory Service\n```",
+    "order": "# Order Service\n\nOrder Service owns the complete order lifecycle. It calls [[payment]] for payment authorization, persists state in [[ordersdb]], and publishes lifecycle events consumed by [[notification]] and [[analytics]].\n\n## Responsibilities\n- Creates and manages orders\n- Coordinates payments\n- Stores order state\n- Publishes lifecycle events\n\n## Create Order\n```\nPOST /orders → validate → authorize payment → save → publish order.completed\n```",
+    "payment": "# Payment Service\n\nPayment Service authorizes, captures and refunds payments. It is called synchronously by [[order]] and delegates card processing to [[stripe]].\n\n## Responsibilities\n- Authorizes payments\n- Captures and refunds\n- Stores payment ledger\n- Emits payment events\n\n## Authorize\n```\nPOST /payments/authorize → risk check → Stripe intent → persist → publish payment.completed\n```",
+    "process-order": "# processOrder()\n\nCoordinates checkout in `OrderService`. Called by [[create-order|OrderController.createOrder()]].\n\n## Execution\n- Calls [[validate-order]] and [[calculate-total]].\n- Authorizes payment through [[authorize-payment]].\n- Persists with [[save-order]].\n- Publishes [[order-completed]] through [[publish-order]].",
+    "create-order": "# createOrder()\n\nHandles [[order-api]] and delegates to [[process-order]].",
+    "order-service-class": "# OrderService\n\nImplements [[order-usecase]] and owns checkout orchestration. Open [[process-order]] to inspect callers and callees."
+  }
+}

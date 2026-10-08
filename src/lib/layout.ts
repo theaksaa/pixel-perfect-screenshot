@@ -4,13 +4,26 @@
  * so edges never pass through nodes.
  */
 
-export interface Pt { x: number; y: number; h: number }
-export interface Routed { d: string; lx: number; ly: number }
-export interface RoutedEdge extends Routed { reversed: boolean }
+export interface Pt {
+  x: number;
+  y: number;
+  h: number;
+}
+export interface Routed {
+  d: string;
+  lx: number;
+  ly: number;
+}
+export interface RoutedEdge extends Routed {
+  reversed: boolean;
+}
 
 function seg(x1: number, y1: number, x2: number, y2: number, mid: number) {
   if (Math.abs(x1 - x2) < 1) return `M${x1},${y1} V${y2}`;
-  const r = Math.max(0, Math.min(10, Math.abs(x2 - x1) / 2, Math.abs(mid - y1), Math.abs(y2 - mid)));
+  const r = Math.max(
+    0,
+    Math.min(10, Math.abs(x2 - x1) / 2, Math.abs(mid - y1), Math.abs(y2 - mid)),
+  );
   const s = x2 > x1 ? 1 : -1;
   return `M${x1},${y1} V${mid - r} Q${x1},${mid} ${x1 + s * r},${mid} H${x2 - s * r} Q${x2},${mid} ${x2},${mid + r} V${y2}`;
 }
@@ -35,7 +48,11 @@ export function routeChain(pts: Pt[], frac = 0.5, endGap = 3, startGap = 0): Rou
   return { d: d.trim(), lx, ly };
 }
 
-export interface LayoutIn { key: string; w: number; h: number }
+export interface LayoutIn {
+  key: string;
+  w: number;
+  h: number;
+}
 
 const DUMMY_W = 14;
 
@@ -48,12 +65,17 @@ export function layered(
   nodes.forEach((n) => info.set(n.key, { w: n.w, h: n.h, dummy: false }));
   const H = Math.max(0, ...nodes.map((n) => n.h));
   const ids = nodes.map((n) => n.key);
-  const valid = edges.map((e, i) => ({ ...e, i })).filter((e) => info.has(e.from) && info.has(e.to) && e.from !== e.to);
+  const valid = edges
+    .map((e, i) => ({ ...e, i }))
+    .filter((e) => info.has(e.from) && info.has(e.to) && e.from !== e.to);
 
   // 1. cycle removal (reverse DFS back edges)
   const outE = new Map<string, typeof valid>(ids.map((i) => [i, []]));
   const indeg = new Map<string, number>(ids.map((i) => [i, 0]));
-  valid.forEach((e) => { outE.get(e.from)!.push(e); indeg.set(e.to, (indeg.get(e.to) ?? 0) + 1); });
+  valid.forEach((e) => {
+    outE.get(e.from)!.push(e);
+    indeg.set(e.to, (indeg.get(e.to) ?? 0) + 1);
+  });
   const state = new Map<string, number>();
   const back = new Set<number>();
   const visit = (u: string) => {
@@ -65,27 +87,46 @@ export function layered(
     }
     state.set(u, 2);
   };
-  [...ids].sort((a, b) => (indeg.get(a) === 0 ? 0 : 1) - (indeg.get(b) === 0 ? 0 : 1)).forEach((u) => { if (!state.get(u)) visit(u); });
-  const dag = valid.map((e) => (back.has(e.i) ? { a: e.to, b: e.from, rev: true, i: e.i } : { a: e.from, b: e.to, rev: false, i: e.i }));
+  [...ids]
+    .sort((a, b) => (indeg.get(a) === 0 ? 0 : 1) - (indeg.get(b) === 0 ? 0 : 1))
+    .forEach((u) => {
+      if (!state.get(u)) visit(u);
+    });
+  const dag = valid.map((e) =>
+    back.has(e.i)
+      ? { a: e.to, b: e.from, rev: true, i: e.i }
+      : { a: e.from, b: e.to, rev: false, i: e.i },
+  );
 
   // 2. layering (longest path, sources pulled down next to their children)
   const succ = new Map<string, string[]>(ids.map((i) => [i, []]));
   const pred = new Map<string, string[]>(ids.map((i) => [i, []]));
-  dag.forEach((e) => { succ.get(e.a)!.push(e.b); pred.get(e.b)!.push(e.a); });
+  dag.forEach((e) => {
+    succ.get(e.a)!.push(e.b);
+    pred.get(e.b)!.push(e.a);
+  });
   const deg = new Map(ids.map((i) => [i, pred.get(i)!.length]));
   const queue = ids.filter((i) => deg.get(i) === 0);
   const topo: string[] = [];
   while (queue.length) {
     const u = queue.shift()!;
     topo.push(u);
-    for (const v of succ.get(u)!) { deg.set(v, deg.get(v)! - 1); if (deg.get(v) === 0) queue.push(v); }
+    for (const v of succ.get(u)!) {
+      deg.set(v, deg.get(v)! - 1);
+      if (deg.get(v) === 0) queue.push(v);
+    }
   }
-  ids.forEach((i) => { if (!topo.includes(i)) topo.push(i); });
+  ids.forEach((i) => {
+    if (!topo.includes(i)) topo.push(i);
+  });
   const layer = new Map<string, number>(ids.map((i) => [i, 0]));
-  topo.forEach((u) => succ.get(u)!.forEach((v) => layer.set(v, Math.max(layer.get(v)!, layer.get(u)! + 1))));
+  topo.forEach((u) =>
+    succ.get(u)!.forEach((v) => layer.set(v, Math.max(layer.get(v)!, layer.get(u)! + 1))),
+  );
   [...topo].reverse().forEach((u) => {
     const s = succ.get(u)!;
-    if (pred.get(u)!.length === 0 && s.length) layer.set(u, Math.min(...s.map((v) => layer.get(v)!)) - 1);
+    if (pred.get(u)!.length === 0 && s.length)
+      layer.set(u, Math.min(...s.map((v) => layer.get(v)!)) - 1);
   });
   const minL = Math.min(0, ...ids.map((i) => layer.get(i)!));
   ids.forEach((i) => layer.set(i, layer.get(i)! - minL));
@@ -105,7 +146,8 @@ export function layered(
   const chains = dag.map((e) => {
     const c = [e.a];
     for (let l = layer.get(e.a)! + 1; l < layer.get(e.b)!; l++) {
-      const d = `__d${e.i}_${l}`;
+      let d = `__d${e.i}_${l}`;
+      while (info.has(d)) d += "_";
       info.set(d, { w: DUMMY_W, h: 0, dummy: true });
       L[l]!.push(d);
       layer.set(d, l);
@@ -139,7 +181,10 @@ export function layered(
   let best = crossings();
   let bestL = L.map((l) => [...l]);
   for (let it = 0; it < 16 && best > 0; it++) {
-    const range = it % 2 === 0 ? Array.from({ length: maxL }, (_, k) => k + 1) : Array.from({ length: maxL }, (_, k) => maxL - 1 - k);
+    const range =
+      it % 2 === 0
+        ? Array.from({ length: maxL }, (_, k) => k + 1)
+        : Array.from({ length: maxL }, (_, k) => maxL - 1 - k);
     const nb = it % 2 === 0 ? up : down;
     for (const l of range) {
       const k = new Map(L[l]!.map((v) => [v, bary(v, nb)]));
@@ -147,7 +192,10 @@ export function layered(
       L[l]!.forEach((v, i) => idx.set(v, i));
     }
     const c = crossings();
-    if (c < best) { best = c; bestL = L.map((l) => [...l]); }
+    if (c < best) {
+      best = c;
+      bestL = L.map((l) => [...l]);
+    }
   }
   L = bestL;
   reidx();
@@ -161,7 +209,10 @@ export function layered(
   };
   L.forEach((l) => {
     let cx = 0;
-    l.forEach((v, i) => { if (i > 0) cx += sep(l[i - 1]!, v); x.set(v, cx); });
+    l.forEach((v, i) => {
+      if (i > 0) cx += sep(l[i - 1]!, v);
+      x.set(v, cx);
+    });
     l.forEach((v) => x.set(v, x.get(v)! - cx / 2));
   });
   const place = (l: string[], des: number[]) => {
@@ -175,13 +226,20 @@ export function layered(
     for (let i = 1; i < n; i++) c[i] = Math.max(c[i]!, c[i - 1]! + sep(l[i - 1]!, l[i]!));
     l.forEach((v, i) => x.set(v, c[i]!));
   };
-  const avg = (v: string, ns: string[]) => (ns.length ? ns.reduce((s, n) => s + x.get(n)!, 0) / ns.length : x.get(v)!);
+  const avg = (v: string, ns: string[]) =>
+    ns.length ? ns.reduce((s, n) => s + x.get(n)!, 0) / ns.length : x.get(v)!;
   for (let it = 0; it < 12; it++) {
     const useUp = it % 2 === 0;
-    const order = useUp ? Array.from({ length: maxL }, (_, k) => k + 1) : Array.from({ length: maxL }, (_, k) => maxL - 1 - k);
+    const order = useUp
+      ? Array.from({ length: maxL }, (_, k) => k + 1)
+      : Array.from({ length: maxL }, (_, k) => maxL - 1 - k);
     for (const l of order) {
       const lay = L[l]!;
-      const des = lay.map((v) => (it >= 10 ? avg(v, [...(up.get(v) ?? []), ...(down.get(v) ?? [])]) : avg(v, (useUp ? up : down).get(v) ?? [])));
+      const des = lay.map((v) =>
+        it >= 10
+          ? avg(v, [...(up.get(v) ?? []), ...(down.get(v) ?? [])])
+          : avg(v, (useUp ? up : down).get(v) ?? []),
+      );
       place(lay, des);
     }
   }
@@ -190,9 +248,14 @@ export function layered(
   const routes: (RoutedEdge | null)[] = edges.map(() => null);
   chains.forEach((e) => {
     const pts = e.c.map((k) => ({ x: x.get(k)!, y: yOf(k), h: info.get(k)!.h }));
-    routes[e.i] = { ...routeChain(pts, opts.frac(e.a), e.rev ? 0 : 3, e.rev ? 3 : 0), reversed: e.rev };
+    routes[e.i] = {
+      ...routeChain(pts, opts.frac(e.a), e.rev ? 0 : 3, e.rev ? 3 : 0),
+      reversed: e.rev,
+    };
   });
   const pos: Record<string, { x: number; y: number }> = {};
-  ids.forEach((k) => { pos[k] = { x: x.get(k)!, y: yOf(k) }; });
+  ids.forEach((k) => {
+    pos[k] = { x: x.get(k)!, y: yOf(k) };
+  });
   return { pos, routes };
 }

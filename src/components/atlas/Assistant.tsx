@@ -1,19 +1,25 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowUp, Waypoints, CornerDownRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { defaultSuggestions, entities, fakeAnswer, suggestions } from "@/lib/atlas-data";
+import { type Model, type GraphKind, modelAnswer } from "@/lib/atlas-data";
 
 export interface Msg {
   role: "user" | "ai";
   text: string;
   ctx: string;
+  kind: GraphKind;
   highlight?: string[];
 }
 
 function inline(text: string): ReactNode[] {
   return text.split(/(`[^`]+`)/g).map((p, i) =>
     p.startsWith("`") ? (
-      <code key={i} className="rounded-sm bg-surface-2 px-1 py-px font-mono text-[11.5px] text-foreground">{p.slice(1, -1)}</code>
+      <code
+        key={i}
+        className="rounded-sm bg-surface-2 px-1 py-px font-mono text-[11.5px] text-foreground"
+      >
+        {p.slice(1, -1)}
+      </code>
     ) : (
       <span key={i}>{p}</span>
     ),
@@ -21,32 +27,40 @@ function inline(text: string): ReactNode[] {
 }
 
 interface Props {
+  model: Model;
+  kind: GraphKind;
   contextId: string;
-  onShowOnGraph: (ctx: string, keys: string[]) => void;
+  onShowOnGraph: (ctx: string, keys: string[], kind: GraphKind) => void;
 }
 
-export function Assistant({ contextId, onShowOnGraph }: Props) {
+export function Assistant({ model, kind, contextId, onShowOnGraph }: Props) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
-  const ctxName = entities[contextId]!.name;
+  const ctxName = model.entities[contextId]!.name;
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, thinking]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView?.({ behavior: "smooth" });
+  }, [messages, thinking]);
 
   const ask = (q: string) => {
     if (!q.trim() || thinking) return;
-    setMessages((m) => [...m, { role: "user", text: q, ctx: contextId }]);
+    const a = modelAnswer(model, q, contextId, kind);
+    setMessages((m) => [
+      ...m,
+      { role: "user", text: q, ctx: contextId, kind },
+      { role: "ai", text: a.text, ctx: contextId, kind, highlight: a.highlight },
+    ]);
     setInput("");
-    setThinking(true);
-    setTimeout(() => {
-      const a = fakeAnswer(q, contextId);
-      setMessages((m) => [...m, { role: "ai", text: a.text, ctx: contextId, highlight: a.highlight }]);
-      setThinking(false);
-    }, 900);
   };
 
-  const sugg = suggestions[contextId] ?? defaultSuggestions;
+  const sugg = [
+    "Explain this context",
+    "What depends on this?",
+    "Show event relationships",
+    "What does this call?",
+  ];
 
   return (
     <aside className="flex h-full flex-col border-l bg-background">
@@ -62,8 +76,13 @@ export function Assistant({ contextId, onShowOnGraph }: Props) {
       <div className="scrollbar-thin flex-1 space-y-5 overflow-y-auto px-4 py-4">
         {messages.length === 0 && (
           <div className="pt-2">
-            <p className="text-[13px] text-foreground">Ask anything about <span className="font-medium">{ctxName}</span>.</p>
-            <p className="mt-1 text-xs text-muted-foreground">Answers are grounded in the indexed source of 14 repositories.</p>
+            <p className="text-[13px] text-foreground">
+              Ask anything about <span className="font-medium">{ctxName}</span>.
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Local demo answers use the loaded JSON ({model.data.nodes.length} entities,{" "}
+              {model.relationships.length} relationships).
+            </p>
             <div className="mt-5 space-y-1">
               <p className="mb-2 text-[11px] uppercase tracking-wider text-faint">Suggested</p>
               {sugg.map((s) => (
@@ -82,17 +101,24 @@ export function Assistant({ contextId, onShowOnGraph }: Props) {
         {messages.map((m, i) =>
           m.role === "user" ? (
             <div key={i} className="flex justify-end">
-              <div className="max-w-[90%] rounded-md bg-secondary px-3 py-2 text-[12.5px] text-secondary-foreground">{m.text}</div>
+              <div className="max-w-[90%] rounded-md bg-secondary px-3 py-2 text-[12.5px] text-secondary-foreground">
+                {m.text}
+              </div>
             </div>
           ) : (
-            <div key={i} className="space-y-2 text-[12.5px] leading-[1.6] text-secondary-foreground">
+            <div
+              key={i}
+              className="space-y-2 text-[12.5px] leading-[1.6] text-secondary-foreground"
+            >
               <div className="flex items-center gap-1.5 text-[11px] text-faint">
-                <Waypoints className="size-3 text-primary" /> Atlas · {entities[m.ctx]!.name}
+                <Waypoints className="size-3 text-primary" /> Atlas · {model.entities[m.ctx]!.name}
               </div>
-              {m.text.split("\n\n").map((p, j) => <p key={j}>{inline(p)}</p>)}
+              {m.text.split("\n\n").map((p, j) => (
+                <p key={j}>{inline(p)}</p>
+              ))}
               {m.highlight && (
                 <button
-                  onClick={() => onShowOnGraph(m.ctx, m.highlight!)}
+                  onClick={() => onShowOnGraph(m.ctx, m.highlight!, m.kind)}
                   className="inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 text-[11.5px] text-primary transition-colors hover:border-primary/50 hover:bg-primary/10"
                 >
                   <Waypoints className="size-3" /> Show on graph
@@ -110,13 +136,21 @@ export function Assistant({ contextId, onShowOnGraph }: Props) {
       </div>
 
       <form
-        onSubmit={(e) => { e.preventDefault(); ask(input); }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          ask(input);
+        }}
         className="m-3 rounded-md border bg-surface focus-within:border-border-strong"
       >
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(input); } }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              ask(input);
+            }
+          }}
           rows={2}
           placeholder="Ask about this architecture..."
           className="block w-full resize-none bg-transparent px-3 pt-2.5 text-[12.5px] placeholder:text-faint focus:outline-none"
@@ -126,7 +160,10 @@ export function Assistant({ contextId, onShowOnGraph }: Props) {
           <button
             type="submit"
             disabled={!input.trim()}
-            className={cn("flex size-6 items-center justify-center rounded-sm transition-colors", input.trim() ? "bg-primary text-primary-foreground" : "bg-muted text-faint")}
+            className={cn(
+              "flex size-6 items-center justify-center rounded-sm transition-colors",
+              input.trim() ? "bg-primary text-primary-foreground" : "bg-muted text-faint",
+            )}
             aria-label="Send"
           >
             <ArrowUp className="size-3.5" />
