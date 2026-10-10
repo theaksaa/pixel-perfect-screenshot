@@ -1,16 +1,21 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Search, Check } from "lucide-react";
+import { ChevronDown, Search, Check, Settings } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { type Model } from "@/lib/atlas-data";
+import { useAdminProjects, type AdminProject } from "@/lib/admin-store";
 
 export function TopNav({
   model,
   onOpen,
   onImport,
+  onSelectProject = () => {},
 }: {
   model: Model;
   onOpen: (id: string) => void;
   onImport: () => void;
+  onSelectProject?: (p: AdminProject) => void;
 }) {
+  const projects = useAdminProjects();
   const [q, setQ] = useState("");
   const [focus, setFocus] = useState(false);
   const [projOpen, setProjOpen] = useState(false);
@@ -63,25 +68,23 @@ export function TopNav({
         </button>
         {projOpen && (
           <div className="absolute left-0 top-9 z-30 w-64 rounded-md border bg-popover p-1 shadow-xl animate-in fade-in zoom-in-95">
-            <button
-              onClick={() => {
-                onOpen(model.root);
-                setProjOpen(false);
-              }}
-              className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-[13px] hover:bg-accent"
-            >
-              {model.data.project.name}
-              <Check className="size-3.5 text-primary" />
-            </button>
-            <button
-              onClick={() => {
-                onImport();
-                setProjOpen(false);
-              }}
-              className="w-full rounded-sm px-2 py-1.5 text-left text-xs text-muted-foreground hover:bg-accent"
-            >
-              Import another project…
-            </button>
+            {(projects.some((p) => p.id === model.root)
+              ? projects
+              : [{ id: model.root, name: model.data.project.name, description: "", repos: [], lastFullRefresh: null }, ...projects]
+            ).map((p) => (
+              <button
+                key={p.id}
+                onClick={() => {
+                  if (p.id === model.root) onOpen(model.root);
+                  else onSelectProject(p);
+                  setProjOpen(false);
+                }}
+                className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-left text-[13px] hover:bg-accent"
+              >
+                <span className="truncate">{p.id === model.root ? model.data.project.name : p.name}</span>
+                {p.id === model.root && <Check className="size-3.5 text-primary" />}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -134,6 +137,14 @@ export function TopNav({
         <span className="flex items-center gap-1.5">
           <span className="size-1.5 rounded-full bg-success" /> Local project
         </span>
+        <Link
+          to="/admin"
+          aria-label="Admin"
+          title="Admin"
+          className="rounded-md p-1.5 text-faint hover:bg-surface hover:text-foreground"
+        >
+          <Settings className="size-4" />
+        </Link>
         <div className="flex size-6 items-center justify-center rounded-full border bg-surface-2 text-[10.5px] font-medium text-foreground">
           UA
         </div>
